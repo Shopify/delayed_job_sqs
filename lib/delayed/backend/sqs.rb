@@ -4,7 +4,6 @@ module Delayed
       class Job
         attr_accessor :id
         attr_accessor :request_id
-        attr_accessor :last_error
         attr_accessor :queue
         attr_accessor :attempts # Approximate
         attr_accessor :handler
