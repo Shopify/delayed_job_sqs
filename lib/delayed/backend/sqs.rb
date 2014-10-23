@@ -8,6 +8,7 @@ module Delayed
         attr_accessor :attempts # Approximate
         attr_accessor :handler
         attr_accessor :sent_at
+        attr_accessor :delay_seconds
         attr_accessor :message
 
         # Unsupported attributes
