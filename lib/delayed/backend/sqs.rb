@@ -7,7 +7,8 @@ module Delayed
         attr_accessor :queue
         attr_accessor :attempts # Approximate
         attr_accessor :handler
-        attr_accessor :delay_seconds
+        attr_accessor :sent_at
+        attr_accessor :message
 
         # Unsupported attributes
         attr_accessor :priority
@@ -53,6 +54,7 @@ module Delayed
             self.queue = @message.queue
             self.attempts = @message.approximate_receive_count || 0
             self.handler = @message.body
+            self.sent_at = @message.sent_at
           else
             data.symbolize_keys!
 

@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
 
   s.add_runtime_dependency('aws-sdk', '~> 1.56.0')
+  #s.add_runtime_dependency('delayed_job', '~> 4.0.4')
 
   s.add_development_dependency 'rspec'
 end
