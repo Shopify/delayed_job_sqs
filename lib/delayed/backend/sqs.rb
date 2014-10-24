@@ -25,7 +25,7 @@ module Delayed
         end
 
         def self.reserve(worker, limit = 5, max_run_time = Worker.max_run_time)
-          message = sqs_queue.receive_message(limit: 1)
+          message = sqs_queue.receive_message(limit: 1, attributes: [:all])
           new(message) if message
         end
 
@@ -55,7 +55,6 @@ module Delayed
             self.queue = @message.queue
             self.attempts = @message.approximate_receive_count || 0
             self.handler = @message.body
-            self.sent_at = @message.sent_at
           else
             data.symbolize_keys!
 
