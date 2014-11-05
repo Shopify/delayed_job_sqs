@@ -33,10 +33,6 @@ module Delayed
           new(*args).tap{|j|j.save}
         end
 
-        def self.create!(*args)
-          create(*args)
-        end
-
         def self.count
           sqs_queue.approximate_number_of_messages || 0
         end
@@ -58,12 +54,11 @@ module Delayed
           else
             data.symbolize_keys!
 
-            self.queue = data[:queue] || Delayed::Worker.default_queue_name
             self.delay_seconds = data[:delay_seconds] || 0
-            self.payload_object = data[:payload_object]
+            self.handler = data[:handler] || ''
+            self.payload_object = data[:payload_object] if data[:payload_object]
+            self.queue = data[:queue] || Delayed::Worker.default_queue_name
             self.attempts = 0
-
-            self.run_at = data[:run_at] || self.class.db_time_now
           end
         end
 
@@ -73,10 +68,7 @@ module Delayed
           sent_message = sqs_queue.send_message(handler, delay_seconds: delay_seconds)
           self.id = sent_message.message_id
         end
-
-        def save!
-          save
-        end
+        alias_method :save!, :save
 
         def destroy
           @message.delete if @message
@@ -92,10 +84,13 @@ module Delayed
         end
 
         def self.delete_all
+          # SQS doesn't provide any API to delete all messages
+          # Either work off a queue or delete the queue itself
           raise NotImplementedError
         end
 
         def reschedule_at
+          # SQS doesn't support scheduling
           raise NotImplementedError
         end
 
@@ -114,7 +109,7 @@ module Delayed
         end
 
         def sqs_queue
-          @sqs_queue ||= self.class.sqs.queues.named(queue.to_s || Delayed::Worker.queues.first.to_s)
+          @sqs_queue ||= self.class.sqs.queues.named(queue.to_s)
         end
       end
     end

@@ -20,5 +20,6 @@ Gem::Specification.new do |s|
   #s.add_runtime_dependency('delayed_job', '~> 4.0.4')
 
   s.add_development_dependency 'rspec'
+  s.add_development_dependency 'rake'
 end
 
