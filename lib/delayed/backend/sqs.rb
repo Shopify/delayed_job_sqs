@@ -2,8 +2,11 @@ module Delayed
   module Backend
     module Sqs
       class Job
+        cattr_accessor :queue_url
+
         attr_accessor :id
         attr_accessor :request_id
+        attr_accessor :queue_url
         attr_accessor :queue
         attr_accessor :attempts # Approximate
         attr_accessor :handler
@@ -58,6 +61,7 @@ module Delayed
             self.handler = data[:handler] || ''
             self.payload_object = data[:payload_object] if data[:payload_object]
             self.queue = data[:queue] || Delayed::Worker.default_queue_name
+            self.queue_url = data[:queue_url]
             self.attempts = 0
           end
         end
@@ -98,18 +102,32 @@ module Delayed
           attrs.each { |k, v| send(:"#{k}=", v) }
         end
 
+        def queue
+          queue_url || @queue
+        end
+
         private
 
         def self.sqs
           @sqs ||= AWS::SQS::new
         end
 
+        def self.sqs_queue_url
+          @sqs_queue_url ||= queue_url
+          @sqs_queue_url ||= self.sqs.queues.named(Delayed::Worker.queues.first.to_s).url
+        end
+
         def self.sqs_queue
-          @queue ||= sqs.queues.named(Delayed::Worker.queues.first.to_s)
+          sqs.queues[sqs_queue_url]
+        end
+
+        def sqs_queue_url
+          @sqs_queue_url ||= queue_url
+          @sqs_queue_url ||= self.class.sqs.queues.named(queue.to_s).url
         end
 
         def sqs_queue
-          @sqs_queue ||= self.class.sqs.queues.named(queue.to_s)
+          self.class.sqs.queues[sqs_queue_url]
         end
       end
     end

@@ -1,6 +1,7 @@
 require 'rspec'
 require 'delayed_job_sqs'
 require 'sample_jobs'
+require 'byebug'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |c|
@@ -9,8 +10,9 @@ RSpec.configure do |config|
 end
 
 AWS.config(
-  :access_key_id => 'YOUR_ACCESS_KEY_ID',
-  :secret_access_key => 'YOUR_SECRET_ACCESS_KEY')
+  :access_key_id => 'AKIAIZMKAWZTUZTXJKPQ',
+  :secret_access_key => 'isAF3IDjRry5eH9/0jSrl6nNsHepb7TBZjWlMfBV',
+  :region => 'us-west-2')
 
 def create_queue(name)
   sqs = AWS::SQS.new

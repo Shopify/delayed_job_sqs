@@ -6,7 +6,7 @@ This is an [Amazon SQS](http://aws.amazon.com/sqs/) backend for [delayed_job](ht
 
 Configure AWS with:
 ```ruby
-aws.config(
+AWS.config(
   :access_key_id => 'XXXXXX',
   :secret_access_key => 'XXXXXX',
   :region => 'XXXXXX')
@@ -14,7 +14,7 @@ aws.config(
 
 One and only one worker's queue must be defined:
 ```ruby
-Delayed::Worker.queue = [:some_queue]
+Delayed::Worker.queues = [:some_queue]
 # or with URL to avoid SQS requests
 Delayed::Backend::Sqs.queue_url = 'https://sqs.us-west-2.amazonaws.com/146382271533/some_queue'
 Delayed::Backend::Sqs.queue_url = AWS::SQS.new.queue.named(:some_queue).url
@@ -39,4 +39,5 @@ Jobs have the following additional attributes:
  * `request_id`: Message request id
  * `delay_seconds`: Delay before the jobs is avaiable in the SQS queue
  * `message`: SQS `ReceivedMessage` object
+ * `queue_url`: Job queue's URL. Used instead of `queue` if defined.
 
