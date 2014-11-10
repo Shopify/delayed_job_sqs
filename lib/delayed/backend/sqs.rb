@@ -1,9 +1,9 @@
+require_relative 'sqs_worker.rb'
+
 module Delayed
   module Backend
     module Sqs
       class Job
-        cattr_accessor :queue_url
-
         attr_accessor :id
         attr_accessor :request_id
         attr_accessor :queue_url
@@ -22,27 +22,7 @@ module Delayed
         attr_accessor :failed_at
 
         include Delayed::Backend::Base
-
-        def self.clear_locks!(*args)
-          true
-        end
-
-        def self.reserve(worker, limit = 5, max_run_time = Worker.max_run_time)
-          message = sqs_queue.receive_message(limit: 1, attributes: [:all])
-          new(message) if message
-        end
-
-        def self.create(*args)
-          new(*args).tap{|j|j.save}
-        end
-
-        def self.count
-          sqs_queue.approximate_number_of_messages || 0
-        end
-
-        def self.db_time_now
-          Time.now.utc
-        end
+        extend Delayed::Backend::Sqs::Worker
 
         def initialize(data = {})
           @message = nil
@@ -69,7 +49,7 @@ module Delayed
         def save
           raise ArgumentError, 'Cannot update existing job' if id
 
-          sent_message = sqs_queue.send_message(handler, delay_seconds: delay_seconds)
+          sent_message = job_queue.send_message(handler, delay_seconds: delay_seconds)
           self.id = sent_message.message_id
         end
         alias_method :save!, :save
@@ -87,12 +67,6 @@ module Delayed
           self
         end
 
-        def self.delete_all
-          # SQS doesn't provide any API to delete all messages
-          # Either work off a queue or delete the queue itself
-          raise NotImplementedError
-        end
-
         def reschedule_at
           # SQS doesn't support scheduling
           raise NotImplementedError
@@ -108,32 +82,14 @@ module Delayed
 
         private
 
-        def self.sqs
-          @sqs ||= AWS::SQS::new
+        def job_queue_url
+          @job_queue_url = queue_url || self.class.sqs.queues.named(queue.to_s).url
         end
 
-        def self.sqs_queue_url
-          @sqs_queue_url ||= queue_url
-          @sqs_queue_url ||= self.sqs.queues.named(Delayed::Worker.queues.first.to_s).url
-        end
-
-        def self.sqs_queue
-          sqs.queues[sqs_queue_url]
-        end
-
-        def sqs_queue_url
-          @sqs_queue_url ||= queue_url
-          @sqs_queue_url ||= self.class.sqs.queues.named(queue.to_s).url
-        end
-
-        def sqs_queue
-          self.class.sqs.queues[sqs_queue_url]
+        def job_queue
+          self.class.sqs.queues[job_queue_url]
         end
       end
     end
-  end
-
-  class Worker
-    self.destroy_failed_jobs = false
   end
 end
