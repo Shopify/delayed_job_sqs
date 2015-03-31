@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.email         = ['isra017@gmail.com']
   s.description   = 'Amazon SQS backend for delayed_job'
   s.summary       = 'Amazon SQS backend for delayed_job'
-  s.homepage      = 'https://github.com/isra17/delayed_job_sqs'
+  s.homepage      = 'https://github.com/Shopify/delayed_job_sqs'
   s.license       = 'MIT'
 
   s.files         = `git ls-files`.split($/)
